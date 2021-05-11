@@ -1,0 +1,9 @@
+name: 'Merge protect check'
+description: 'Greet someone and record the time'
+inputs:
+  airtable-api:  # id of input
+    description: 'Airtalbe api key'
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'
