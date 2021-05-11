@@ -20,7 +20,7 @@ async function main() {
     const value = record.fields.Value;
 
     if(!value) {
-      core.setFailed("Merges to main is currently blocked. Pls check in General channel more info!");
+      core.setFailed("Merges to main is currently blocked. Pls check in General channel for more info!");
     }
   } catch (error) {
     core.setFailed(error.message);
