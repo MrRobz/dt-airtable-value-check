@@ -1,9 +1,15 @@
 name: 'Merge protect check'
 description: 'Greet someone and record the time'
 inputs:
-  airtable-api:  # id of input
+  airtableApi:  # id of input
     description: 'Airtalbe api key'
     required: true
+  fieldName:
+    description: 'Field name to check'
+    required: true
+  onBlockedMessage:
+    description: 'Message to display if blocked'
+    required: false
 runs:
-  using: 'node12'
+  using: 'node20'
   main: 'index.js'
