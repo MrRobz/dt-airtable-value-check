@@ -34,7 +34,7 @@ async function checkPRApproval(owner, repo, prNumber, approvedUsers, githubToken
 
 async function main() {
   try {
-    const tablePromise = await fetch('https://api.airtable.com/v0/appoztB9WNejYQSsR/config-table?maxRecords=1', {
+    const tablePromise = await fetch('https://api.airtable.com/v0/appoztB9WNejYQSsR/config-table?maxRecords=3', {
       method: 'get',
       headers: { Authorization: `Bearer ${core.getInput('airtableApi')}` }
     });
