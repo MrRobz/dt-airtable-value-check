@@ -10,6 +10,12 @@ inputs:
   onBlockedMessage:
     description: 'Message to display if blocked'
     required: false
+  githubToken:
+    description: 'GitHub token for API access'
+    required: false
+  approvedUsers:
+    description: 'Comma-separated list of GitHub usernames who can approve when value is false'
+    required: false
 runs:
   using: 'node20'
   main: 'index.js'
