@@ -34,57 +34,40 @@ async function checkPRApproval(owner, repo, prNumber, approvedUsers, githubToken
 
 async function main() {
   try {
-    const tablePromise = await fetch('https://api.airtable.com/v0/appoztB9WNejYQSsR/config-table?maxRecords=3', {
-      method: 'get',
-      headers: { Authorization: `Bearer ${core.getInput('airtableApi')}` }
-    });
-
-    const data = await tablePromise.json();
-
-    const { records } = data;
-
-    const record = records.find(
-      (record) => record.fields.Name === core.getInput('fieldName'),
-    );
-  
-    const value = record.fields.Value;
-
-    if(!value) {
-      // Check if we have the required inputs for PR approval checking
-      const githubToken = core.getInput('githubToken');
-      const approvedUsers = core.getInput('approvedUsers');
+    // Check if we have the required inputs for PR approval checking
+    const githubToken = core.getInput('githubToken');
+    const approvedUsers = core.getInput('approvedUsers');
+    
+    // Parse approved users list
+    const approvedUsersList = approvedUsers.split(',').map(user => user.trim());
+    
+    // Get repository and PR information from GitHub context
+    const { GITHUB_REPOSITORY, GITHUB_EVENT_PATH } = process.env;
+    
+    if (GITHUB_REPOSITORY && GITHUB_EVENT_PATH) {
+      const [owner, repo] = GITHUB_REPOSITORY.split('/');
       
-      // Parse approved users list
-      const approvedUsersList = approvedUsers.split(',').map(user => user.trim());
+      // Read the event file to get PR number
+      const fs = require('fs');
+      const eventData = JSON.parse(fs.readFileSync(GITHUB_EVENT_PATH, 'utf8'));
+      const prNumber = eventData.pull_request?.number;
       
-      // Get repository and PR information from GitHub context
-      const { GITHUB_REPOSITORY, GITHUB_EVENT_PATH } = process.env;
-      
-      if (GITHUB_REPOSITORY && GITHUB_EVENT_PATH) {
-        const [owner, repo] = GITHUB_REPOSITORY.split('/');
+      if (prNumber) {
+        const hasApproval = await checkPRApproval(owner, repo, prNumber, approvedUsersList, githubToken);
         
-        // Read the event file to get PR number
-        const fs = require('fs');
-        const eventData = JSON.parse(fs.readFileSync(GITHUB_EVENT_PATH, 'utf8'));
-        const prNumber = eventData.pull_request?.number;
-        
-        if (prNumber) {
-          const hasApproval = await checkPRApproval(owner, repo, prNumber, approvedUsersList, githubToken);
-          
-          if (hasApproval) {
-            core.info('Release is near, but PR has approval from authorized user. Proceeding with merge.');
-            return;
-          } else {
-            core.setFailed(core.getInput('onBlockedMessage'));
-          }
+        if (hasApproval) {
+          core.info('Release is near, but PR has approval from authorized user. Proceeding with merge.');
+          return;
         } else {
-          core.warning('Could not determine PR number from event context');
           core.setFailed(core.getInput('onBlockedMessage'));
         }
       } else {
-        core.warning('GitHub repository context not available');
+        core.warning('Could not determine PR number from event context');
         core.setFailed(core.getInput('onBlockedMessage'));
       }
+    } else {
+      core.warning('GitHub repository context not available');
+      core.setFailed(core.getInput('onBlockedMessage'));
     }
   } catch (error) {
     core.setFailed(error.message);
